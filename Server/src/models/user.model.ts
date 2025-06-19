@@ -19,6 +19,7 @@ export interface Patient {
   age: number;
   gender: string;
   phone: string;
+  googleId?: string
 }
 
 export type User = Doctor | Patient;
