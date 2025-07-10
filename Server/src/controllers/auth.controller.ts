@@ -11,7 +11,7 @@ export const loginUser =  async (req: Request, res: Response, next: NextFunction
 
     const { user, token } = await loginUserService({ email, password });
 
-    res.status(200).json({
+    res.status(200).json({ 
       message: "Login successful",
       user: {
         id: user.id,
