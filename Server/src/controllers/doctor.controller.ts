@@ -12,7 +12,7 @@ export const registerDoctor = async (req: Request, res: Response, next: NextFunc
        res.status(400).json({ error: validationError });
     }
 
-    // 2. Create doctor
+    // 2. Create doctors
     const doctor = await registerDoctorService({
       name,
       email,
