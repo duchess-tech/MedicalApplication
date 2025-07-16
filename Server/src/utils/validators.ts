@@ -1,7 +1,7 @@
 export const validateDoctorData = (data: any): string | null => {
-    const { name, email, password, licenseNumber, specialization } = data;
+    const { firstname,lastname, email, password,gender,phone,licenseNumber, specialization } = data;
   
-    if (!name || !email || !password || !licenseNumber || !specialization) {
+    if (!firstname ||!lastname || !email || !password || !licenseNumber || !specialization) {
       return "All fields are required";
     }
   
@@ -18,9 +18,9 @@ export const validateDoctorData = (data: any): string | null => {
   };
   
   export const validatePatientData = (data: any): string | null => {
-    const { name, email, password, age, gender, phone } = data;
+    const { firstname,lastname, email, password, age, gender, phone } = data;
   
-    if (!name || !email || !password || !age || !gender || !phone) {
+    if (!firstname ||!lastname || !email || !password || !age || !gender || !phone) {
       return "All patient fields are required";
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,7 +32,7 @@ export const validateDoctorData = (data: any): string | null => {
       return "Password must be at least 6 characters";
     }
   
-    if (isNaN(age) || age < 0 || age > 120) {
+    if (isNaN(age) || age < 0 || age > 60) {
       return "Age must be a valid number between 0 and 120";
     }
   
@@ -46,4 +46,4 @@ export const validateDoctorData = (data: any): string | null => {
     }
   
     return null;
-  };
+  }

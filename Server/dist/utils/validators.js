@@ -1,6 +1,6 @@
 export const validateDoctorData = (data) => {
-    const { name, email, password, licenseNumber, specialization } = data;
-    if (!name || !email || !password || !licenseNumber || !specialization) {
+    const { firstname, lastname, email, password, gender, phone, licenseNumber, specialization } = data;
+    if (!firstname || !lastname || !email || !password || !licenseNumber || !specialization) {
         return "All fields are required";
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -13,8 +13,8 @@ export const validateDoctorData = (data) => {
     return null;
 };
 export const validatePatientData = (data) => {
-    const { name, email, password, age, gender, phone } = data;
-    if (!name || !email || !password || !age || !gender || !phone) {
+    const { firstname, lastname, email, password, age, gender, phone } = data;
+    if (!firstname || !lastname || !email || !password || !age || !gender || !phone) {
         return "All patient fields are required";
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -24,7 +24,7 @@ export const validatePatientData = (data) => {
     if (password.length < 6) {
         return "Password must be at least 6 characters";
     }
-    if (isNaN(age) || age < 0 || age > 120) {
+    if (isNaN(age) || age < 0 || age > 60) {
         return "Age must be a valid number between 0 and 120";
     }
     if (!['male', 'female', 'other'].includes(gender.toLowerCase())) {

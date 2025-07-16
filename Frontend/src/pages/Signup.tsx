@@ -6,18 +6,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { Video, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import axios from 'axios';
 
+interface PatientData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  password: string;
+  age: number;
+  gender: string;
+  confirmPassword: string;
+}
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [patientData, setPatientData] = useState({
+  const [patientData, setPatientData] = useState<PatientData>({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     password: "",
+    age:0,
+    gender: "",
     confirmPassword: ""
   });
   const [doctorData, setDoctorData] = useState({
@@ -25,7 +37,8 @@ const Signup = () => {
     lastName: "",
     email: "",
     phone: "",
-    specialty: "",
+    gender:"",
+    specialization: "",
     licenseNumber: "",
     experience: "",
     password: "",
@@ -34,45 +47,116 @@ const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handlePatientSignup = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (patientData.password !== patientData.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords don't match",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    localStorage.setItem('userType', 'patient');
-    localStorage.setItem('userEmail', patientData.email);
-    toast({
-      title: "Account Created Successfully",
-      description: "Welcome to TeleMed! Redirecting to your dashboard...",
-    });
-    setTimeout(() => navigate('/patient-dashboard'), 1000);
-  };
 
-  const handleDoctorSignup = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (doctorData.password !== doctorData.confirmPassword) {
+  //patient Signup
+  const handlePatientSignup = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (patientData.password !== patientData.confirmPassword) {
+    toast({
+      title: "Error",
+      description: "Passwords don't match",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  try {
+    const response = await axios.post('http://localhost:9000/api/auth/register/patient', {
+      firstname: patientData.firstName,
+      lastname: patientData.lastName,
+      email: patientData.email,
+      password: patientData.password,
+      age: patientData.age,
+      gender: patientData.gender,
+      phone: patientData.phone,
+    });
+
+    if (response.status === 201 || response.status === 200) {
+      localStorage.setItem('userType', 'patient');
+      localStorage.setItem('userEmail', patientData.email);
+
       toast({
-        title: "Error",
-        description: "Passwords don't match",
+        title: "Account Created Successfully",
+        description: "Welcome to TeleMed! Redirecting to your dashboard...",
+      });
+
+      setTimeout(() => navigate('/patient-dashboard'), 1000);
+    }
+  } 
+  catch (error: unknown) {
+  if (axios.isAxiosError(error)) {
+    const errMsg = error.response?.data?.error || "Signup failed. Please try again.";
+    toast({
+      title: "Signup Failed",
+      description: errMsg,
+      variant: "destructive",
+    });
+  } else {
+    toast({
+      title: "Signup Failed",
+      description: "An unexpected error occurred.",
+      variant: "destructive",
+    });
+  }
+}
+};
+
+//doctor signup
+ 
+const handleDoctorSignup = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (doctorData.password !== doctorData.confirmPassword) {
+    toast({
+      title: "Error",
+      description: "Passwords don't match",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  try {
+    const response = await axios.post('http://localhost:9000/api/auth/register/doctor', {
+      firstname: doctorData.firstName,
+      lastname: doctorData.lastName,
+      email: doctorData.email,
+      password: doctorData.password,
+      specialization: doctorData.specialization,
+      phone: doctorData.phone,
+      gender: doctorData.gender,
+      licenseNumber: doctorData.licenseNumber,
+
+    });
+
+    if (response.status === 201 || response.status === 200) {
+      localStorage.setItem('userType', 'doctor');
+      localStorage.setItem('userEmail', doctorData.email);
+
+      toast({
+        title: "Account Created Successfully",
+        description: "Welcome to TeleMed, Doctor! Redirecting to your dashboard...",
+      });
+
+      setTimeout(() => navigate('/doctor-dashboard'), 1000);
+    }
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const errMsg = error.response?.data?.error || "Signup failed. Please try again.";
+      toast({
+        title: "Signup Failed",
+        description: errMsg,
         variant: "destructive"
       });
-      return;
+    } else {
+      toast({
+        title: "Signup Failed",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
     }
-    
-    localStorage.setItem('userType', 'doctor');
-    localStorage.setItem('userEmail', doctorData.email);
-    toast({
-      title: "Account Created Successfully",
-      description: "Welcome to TeleMed, Doctor! Redirecting to your dashboard...",
-    });
-    setTimeout(() => navigate('/doctor-dashboard'), 1000);
-  };
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-4">
@@ -191,6 +275,28 @@ const Signup = () => {
                       required
                     />
                   </div>
+
+                  <div className="space-y-2">
+                      <Label htmlFor="patient-gender">Gender</Label>
+                      <Input
+                        id="patient-gender"
+                        placeholder="Doe"
+                        value={patientData.gender}
+                        onChange={(e) => setPatientData({ ...patientData, gender: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                      <div className="space-y-2">
+                      <Label htmlFor="patient-age">Age</Label>
+                      <Input
+                      type="number"
+                        id="patient-age"
+                        placeholder="0"
+                        onChange={(e) => setPatientData({ ...patientData, age: Number(e.target.value),})}
+                        required
+                      />
+                    </div>
                   <Button type="submit" className="w-full">
                     Create Patient Account
                   </Button>
@@ -243,13 +349,32 @@ const Signup = () => {
                       required
                     />
                   </div>
+
+<div>
+  <label>Select Role:</label>
+<select name="role">
+  <option value="general-doctor">General Doctor</option>
+  <option value="specialist">Specialist</option>
+</select>
+
+</div>
+
+{/* fix:note on click of specialist,this should display */}
+<label>Specialization:</label>
+<select name="specialization">
+  <option value="cardiologist">Cardiologist</option>
+  <option value="dermatologist">Dermatologist</option>
+  <option value="neurologist">Neurologist</option>
+</select>
+
+
                   <div className="space-y-2">
                     <Label htmlFor="doctor-specialty">Medical Specialty</Label>
                     <Input
                       id="doctor-specialty"
                       placeholder="e.g., Cardiology, Dermatology"
-                      value={doctorData.specialty}
-                      onChange={(e) => setDoctorData({ ...doctorData, specialty: e.target.value })}
+                      value={doctorData.specialization}
+                      onChange={(e) => setDoctorData({ ...doctorData, specialization: e.target.value })}
                       required
                     />
                   </div>
@@ -307,6 +432,16 @@ const Signup = () => {
                       required
                     />
                   </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="doctor-gender">Gender</Label>
+                      <Input
+                        id="doctor-gender"
+                        placeholder="Doe"
+                        value={doctorData.gender}
+                        onChange={(e) => setDoctorData({ ...doctorData, gender: e.target.value })}
+                        required
+                      />
+                    </div>
                   <Button type="submit" className="w-full">
                     Create Doctor Account
                   </Button>

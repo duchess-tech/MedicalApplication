@@ -27,7 +27,7 @@ const DoctorDashboard = () => {
     status: 'available' as 'online' | 'offline' | 'busy' | 'available'
   });
 
-  const handleProfileUpdate = (updatedProfile: any) => {
+  const handleProfileUpdate = (updatedProfile) => {
     setDoctorInfo({ ...doctorInfo, ...updatedProfile });
   };
 

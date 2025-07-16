@@ -1,21 +1,24 @@
 import { Request, Response,NextFunction } from 'express';
-import { registerDoctorService } from '../services/doctor.service.js';
-import { validateDoctorData } from '../utils/validators.js';
+import { registerDoctorService } from '../../services/doctor/doctor.service.js';
+import { validateDoctorData } from '../../utils/validators.js';
 
 export const registerDoctor = async (req: Request, res: Response, next: NextFunction) =>{
   try {
-    const { name, email, password, licenseNumber, specialization } = req.body;
+    const {firstname,lastname, email,phone,gender, password, licenseNumber, specialization } = req.body;
 
-    // 1. Validate input
+    // Validate input
     const validationError = validateDoctorData(req.body);
     if (validationError) {
        res.status(400).json({ error: validationError });
     }
 
-    // 2. Create doctors
+    // Create doctors
     const doctor = await registerDoctorService({
-      name,
+      firstname,
+      lastname,
       email,
+      phone,
+      gender,
       password,
       licenseNumber,
       specialization,

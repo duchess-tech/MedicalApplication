@@ -1,15 +1,19 @@
-import { NextFunction, Request, Response} from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { OAuth2Client } from 'google-auth-library';
 import { generateToken } from '../utils/jwt.js';
-import {users } from '../models/user.model.js';
+import { DoctorModel } from '../models/doctor/doctorModel.js';
+import { PatientModel } from '../models/patient/patientModel.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export const googleOAuthLogin = async (req: Request, res: Response,next: NextFunction) : Promise<void> => {
-  const { id_token } = req.body;
+export const googleOAuthLogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  const { id_token, role } = req.body;
 
-  if (!id_token) {
-      res.status(400).json({ error: "Google ID token is required" });
+  if (!id_token || !role || !['doctor', 'patient'].includes(role)) {
+    res.status(400).json({ error: "id_token and valid role are required" });
+    return;
   }
 
   try {
@@ -19,52 +23,45 @@ export const googleOAuthLogin = async (req: Request, res: Response,next: NextFun
     });
 
     const payload = ticket.getPayload();
-    if (!payload || !payload.email || !payload.name || !payload.sub) {
-        throw new Error('Invalid Google token payload');
-      }
-      
-    const { email, name, sub } = payload;
-
-    if (!email ||!sub||!name) {
-         res.status(400).json({ error: "Missing token payload" });
-      }
-
-       
-    let user = users.find(u => u.email === email);
-    
-    if (!user) {
-      user = {
-        id: users.length + 1,
-        name: name || 'No Name',
-        email,
-        password: '',
-        role: 'patient', 
-        googleId: sub,
-        age: 0, 
-        gender:'',
-        phone:'',
-      };
-      users.push(user);
+    if (!payload || !payload.email || !payload.given_name || !payload.sub) {
+      throw new Error("Invalid Google token payload");
     }
 
+    const { email, given_name, family_name, sub } = payload;
+
+    let user;
+    if (role === 'doctor') {
+      user = await DoctorModel.findOne({ email });
+    } else {
+      user = await PatientModel.findOne({ email });
+    }
+
+      if (!user) {
+  res.status(403).json({ error: 'User not registered. Please sign up first.' });
+  return;
+}
+
+
     const token = generateToken({
-      id: user.id,
+      id: user._id.toString(),
       email: user.email,
       role: user.role,
     });
 
-     res.status(200).json({
-      message: 'Login successful via Google',
+    res.status(200).json({
+      message: 'Google login successful',
       user: {
-        id: user.id,
-        name: user.name,
+        id: user._id.toString(),
+        firstname: user.firstname,
+        lastname: user.lastname,
         email: user.email,
         role: user.role,
       },
       token,
     });
 
-  } catch (error) {
-     res.status(500).json({ error: "Google login failed" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Google login failed" });
   }
 };
